@@ -1,8 +1,9 @@
 require 'spec_helper'
 
 describe "SET column" do
+  before { load_schema "set" }
+
   describe "assignment" do
-    before { load_schema "set" }
     it "accepts single value" do
       b = Balloon.create :gasses => "helium"
       b.should be_valid
@@ -18,6 +19,11 @@ describe "SET column" do
       b.should be_valid
       b.reload.gasses.should == "helium,hydrogen"
     end
+    it "accepts values in any order" do
+      b = Balloon.create :gasses => "helium,hydrogen"
+      b.should be_valid
+      b.reload.gasses.should == "helium,hydrogen"
+    end
     it "accepts empty list", :db_support => true do
       b = Balloon.create :gasses => [ ]
       b.should be_valid
@@ -25,9 +31,19 @@ describe "SET column" do
     end
   end
 
+  describe "validation" do
+    it "rejects disallowed value" do
+      b = Balloon.create :gasses => "mercury"
+      b.should be_invalid
+    end
+    it "rejects disallowed value in list" do
+      b = Balloon.create :gasses => "helium,mercury"
+      b.should be_invalid
+    end
+  end
+
   describe "getter" do
     before do
-      load_schema "set"
       ActiveRecord::Base.connection.execute "INSERT INTO balloons (gasses) VALUES ('helium,hydrogen')"
       @b = Balloon.first
     end
@@ -38,4 +54,6 @@ describe "SET column" do
   end
 end
 
-class Balloon < ActiveRecord::Base; end
+class Balloon < ActiveRecord::Base
+  acts_as_set :gasses, ["helium","hydrogen"]
+end
