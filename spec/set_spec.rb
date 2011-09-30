@@ -47,10 +47,11 @@ describe "SET column" do
       ActiveRecord::Base.connection.execute "INSERT INTO balloons (gasses) VALUES ('helium,hydrogen')"
       @b = Balloon.first
     end
-    it "returns comma-separated values by default" do
-      @b.gasses.should == "helium,hydrogen"
+    it "returns comma-separated values when requested" do
     end
-    it "returns array of values when config option is set"
+    it "returns array of values" do
+      @b.gasses.should == [ "helium", "hydrogen" ]
+    end
   end
 end
 
